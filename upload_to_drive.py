@@ -38,7 +38,7 @@ def upload_to_drive():
     try:
         credentials = service_account.Credentials.from_service_account_file(
             creds_file,
-            scopes=['https://www.googleapis.com/auth/drive.file']
+            scopes=['https://www.googleapis.com/auth/drive']  # 完整 Drive 權限
         )
         print("✅ 憑證已載入")
     except Exception as e:
@@ -108,3 +108,4 @@ def upload_to_drive():
 
 if __name__ == '__main__':
     upload_to_drive()
+
