@@ -165,9 +165,10 @@ def fetch_etf_data():
             
             for item_name, (value_key, weight_key) in items_to_find.items():
                 # 嘗試找到「項目名稱 金額 權重」的模式
+                # 注意：百分比可能是 "0.56%" 或 "0.56 %"（有空格）
                 patterns = [
-                    rf'{item_name}\s+(NTD\s*[\d,]+)\s+([\d.]+)%',
-                    rf'{item_name}[^\n]*?(NTD\s*[\d,]+)[^\d]+([\d.]+)%',
+                    rf'{item_name}\s+(NTD\s*[\d,]+)\s+([\d.]+)\s*%',  # 允許 % 前有空格
+                    rf'{item_name}[^\n]*?(NTD\s*[\d,]+)[^\d]+([\d.]+)\s*%',
                 ]
                 
                 for pattern in patterns:
