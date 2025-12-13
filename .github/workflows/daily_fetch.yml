@@ -31,12 +31,14 @@ jobs:
     - name: Fetch ETF Portfolio Data
       run: python fetch_and_save.py
     
-    - name: Upload to Google Drive
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-        FOLDER_ID: "1Wdd7hLkXVjMU6oJo47Ij4papXiw-FhLz"
-      run: python upload_to_drive.py
-    
+    - name: Commit and Push to GitHub
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "GitHub Actions Bot"
+        git add *.xlsx
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto: Update ETF data $(date +'%Y-%m-%d %H:%M:%S')"
+        git push
+        
     - name: Commit changes (if any)
       run: |
         git config --local user.email "action@github.com"
