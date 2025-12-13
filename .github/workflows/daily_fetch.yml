@@ -6,6 +6,9 @@ on:
     - cron: '30 9 * * 1-5'
   workflow_dispatch:  # 允許手動觸發
 
+permissions:
+  contents: write  # 允許寫入 repository
+  
 jobs:
   fetch-and-upload:
     runs-on: ubuntu-latest
