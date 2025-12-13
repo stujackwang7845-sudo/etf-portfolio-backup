@@ -1,0 +1,53 @@
+name: Daily ETF Portfolio Fetch
+
+on:
+  schedule:
+    # 每週一至五 台北時間 17:30 (UTC 09:30)
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  fetch-and-upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Install Chrome and ChromeDriver
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser chromium-chromedriver
+    
+    - name: Fetch ETF Portfolio Data
+      run: python fetch_and_save.py
+    
+    - name: Upload to Google Drive
+      uses: adityak74/google-drive-upload-git-action@main
+      with:
+        credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        filename: "*.xlsx"
+        folderId: "1Wdd7hLkXVjMU6oJo47Ij4papXiw-FhLz"
+        name: "ETF_Investment_Portfolio_*.xlsx"
+        overwrite: "true"
+    
+    - name: Commit changes (if any)
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto: ETF data $(date +'%Y-%m-%d')"
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
