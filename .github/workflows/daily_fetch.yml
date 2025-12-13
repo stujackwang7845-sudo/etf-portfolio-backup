@@ -32,13 +32,10 @@ jobs:
       run: python fetch_and_save.py
     
     - name: Upload to Google Drive
-      uses: adityak74/google-drive-upload-git-action@main
-      with:
-        credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-        filename: "*.xlsx"
-        folderId: "1Wdd7hLkXVjMU6oJo47Ij4papXiw-FhLz"
-        name: "ETF_Investment_Portfolio_*.xlsx"
-        overwrite: "true"
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        FOLDER_ID: "1Wdd7hLkXVjMU6oJo47Ij4papXiw-FhLz"
+      run: python upload_to_drive.py
     
     - name: Commit changes (if any)
       run: |
