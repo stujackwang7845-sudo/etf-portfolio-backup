@@ -115,73 +115,77 @@ def fetch_etf_data():
             # 尋找基金資產相關數據
             lines_text = '\n'.join(lines)
             
+            # 為了調試，打印一些關鍵文字
+            print("\n=== 調試：尋找資產配置資訊 ===")
+            
             # === 基金資產 ===
-            # 淨資產
-            nav_pattern = r'淨資產[^\d]*(NTD\s*[\d,]+)'
-            nav_match = re.search(nav_pattern, lines_text, re.IGNORECASE)
-            if nav_match:
-                fund_info['net_asset'] = nav_match.group(1)
+            # 淨資產 - 更寬鬆的匹配
+            for pattern in [
+                r'淨資產\s*[:：]?\s*(NTD\s*[\d,]+)',
+                r'淨資產[^\d]+(NTD\s*[\d,]+)',
+            ]:
+                match = re.search(pattern, lines_text, re.IGNORECASE)
+                if match:
+                    fund_info['net_asset'] = match.group(1)
+                    print(f"✓ 淨資產: {match.group(1)}")
+                    break
             
             # 流通在外單位數
-            units_pattern = r'流通在外單位數[^\d]*([\d,]+)'
-            units_match = re.search(units_pattern, lines_text)
-            if units_match:
-                fund_info['outstanding_units'] = units_match.group(1)
+            for pattern in [
+                r'流通在外單位數\s*[:：]?\s*([\d,]+)',
+                r'流通在外單位數[^\d]+([\d,]+)',
+            ]:
+                match = re.search(pattern, lines_text)
+                if match:
+                    fund_info['outstanding_units'] = match.group(1)
+                    print(f"✓ 流通在外單位數: {match.group(1)}")
+                    break
             
             # 每單位淨值
-            per_unit_pattern = r'每單位淨值[^\d]*(NTD\s*[\d.]+)'
-            per_unit_match = re.search(per_unit_pattern, lines_text, re.IGNORECASE)
-            if per_unit_match:
-                fund_info['nav'] = per_unit_match.group(1)
+            for pattern in [
+                r'每單位淨值\s*[:：]?\s*(NTD\s*[\d.]+)',
+                r'每單位淨值[^\d]+(NTD\s*[\d.]+)',
+            ]:
+                match = re.search(pattern, lines_text, re.IGNORECASE)
+                if match:
+                    fund_info['nav'] = match.group(1)
+                    print(f"✓ 每單位淨值: {match.group(1)}")
+                    break
             
-            # === 資產配置 ===
-            # 期貨
-            futures_pattern = r'期貨[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            futures_match = re.search(futures_pattern, lines_text, re.IGNORECASE)
-            if futures_match:
-                fund_info['futures'] = futures_match.group(1)
-                fund_info['futures_weight'] = futures_match.group(2) + '%'
+            # === 尋找表格形式的資產配置 ===
+            # 尋找「項目」「金額」「權重」表格
+            items_to_find = {
+                '現金': ('cash', 'cash_weight'),
+                '期貨保證金': ('futures_margin', 'futures_margin_weight'),
+                '申贖應付款': ('subscription_payable', 'subscription_payable_weight'),
+                '應收付證券款': ('securities_payable', 'securities_payable_weight'),
+                '期貨': ('futures', 'futures_weight'),
+                '股票': ('stocks_value', 'stocks_weight'),
+            }
             
-            # 股票（金額和權重）
-            stocks_pattern = r'股票[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            stocks_match = re.search(stocks_pattern, lines_text, re.IGNORECASE)
-            if stocks_match:
-                fund_info['stocks_value'] = stocks_match.group(1)
-                # 權重會用實際計算的
+            for item_name, (value_key, weight_key) in items_to_find.items():
+                # 嘗試找到「項目名稱 金額 權重」的模式
+                patterns = [
+                    rf'{item_name}\s+(NTD\s*[\d,]+)\s+([\d.]+)%',
+                    rf'{item_name}[^\n]*?(NTD\s*[\d,]+)[^\d]+([\d.]+)%',
+                ]
+                
+                for pattern in patterns:
+                    match = re.search(pattern, lines_text, re.IGNORECASE)
+                    if match:
+                        fund_info[value_key] = match.group(1)
+                        fund_info[weight_key] = match.group(2) + '%'
+                        print(f"✓ {item_name}: {match.group(1)}, {match.group(2)}%")
+                        break
             
-            # === 其他資產 ===
-            # 現金
-            cash_pattern = r'現金[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            cash_match = re.search(cash_pattern, lines_text, re.IGNORECASE)
-            if cash_match:
-                fund_info['cash'] = cash_match.group(1)
-                fund_info['cash_weight'] = cash_match.group(2) + '%'
+            print("=== 調試結束 ===\n")
             
-            # 期貨保證金
-            margin_pattern = r'期貨保證金[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            margin_match = re.search(margin_pattern, lines_text, re.IGNORECASE)
-            if margin_match:
-                fund_info['futures_margin'] = margin_match.group(1)
-                fund_info['futures_margin_weight'] = margin_match.group(2) + '%'
-            
-            # 申贖應付款
-            subscription_pattern = r'申贖應付款[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            subscription_match = re.search(subscription_pattern, lines_text, re.IGNORECASE)
-            if subscription_match:
-                fund_info['subscription_payable'] = subscription_match.group(1)
-                fund_info['subscription_payable_weight'] = subscription_match.group(2) + '%'
-            
-            # 應收付證券款
-            securities_pattern = r'應收付證券款[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
-            securities_match = re.search(securities_pattern, lines_text, re.IGNORECASE)
-            if securities_match:
-                fund_info['securities_payable'] = securities_match.group(1)
-                fund_info['securities_payable_weight'] = securities_match.group(2) + '%'
-            
-            extracted_count = len([k for k in fund_info.keys() if k != 'nav'])
+            extracted_count = len([k for k in fund_info.keys()])
             print(f"✅ 成功擷取 {extracted_count} 項基金資產資訊")
         except Exception as e:
             print(f"⚠️  基金資產資訊擷取失敗: {e}")
+            import traceback
+            traceback.print_exc()
         
         return {
             'date': data_date,
