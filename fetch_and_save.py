@@ -115,6 +115,7 @@ def fetch_etf_data():
             # 尋找基金資產相關數據
             lines_text = '\n'.join(lines)
             
+            # === 基金資產 ===
             # 淨資產
             nav_pattern = r'淨資產[^\d]*(NTD\s*[\d,]+)'
             nav_match = re.search(nav_pattern, lines_text, re.IGNORECASE)
@@ -133,7 +134,52 @@ def fetch_etf_data():
             if per_unit_match:
                 fund_info['nav'] = per_unit_match.group(1)
             
-            print(f"✅ 成功擷取基金資產資訊")
+            # === 資產配置 ===
+            # 期貨
+            futures_pattern = r'期貨[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            futures_match = re.search(futures_pattern, lines_text, re.IGNORECASE)
+            if futures_match:
+                fund_info['futures'] = futures_match.group(1)
+                fund_info['futures_weight'] = futures_match.group(2) + '%'
+            
+            # 股票（金額和權重）
+            stocks_pattern = r'股票[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            stocks_match = re.search(stocks_pattern, lines_text, re.IGNORECASE)
+            if stocks_match:
+                fund_info['stocks_value'] = stocks_match.group(1)
+                # 權重會用實際計算的
+            
+            # === 其他資產 ===
+            # 現金
+            cash_pattern = r'現金[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            cash_match = re.search(cash_pattern, lines_text, re.IGNORECASE)
+            if cash_match:
+                fund_info['cash'] = cash_match.group(1)
+                fund_info['cash_weight'] = cash_match.group(2) + '%'
+            
+            # 期貨保證金
+            margin_pattern = r'期貨保證金[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            margin_match = re.search(margin_pattern, lines_text, re.IGNORECASE)
+            if margin_match:
+                fund_info['futures_margin'] = margin_match.group(1)
+                fund_info['futures_margin_weight'] = margin_match.group(2) + '%'
+            
+            # 申贖應付款
+            subscription_pattern = r'申贖應付款[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            subscription_match = re.search(subscription_pattern, lines_text, re.IGNORECASE)
+            if subscription_match:
+                fund_info['subscription_payable'] = subscription_match.group(1)
+                fund_info['subscription_payable_weight'] = subscription_match.group(2) + '%'
+            
+            # 應收付證券款
+            securities_pattern = r'應收付證券款[^N]*(NTD\s*[\d,]+)[^\d]*([\d.]+)%'
+            securities_match = re.search(securities_pattern, lines_text, re.IGNORECASE)
+            if securities_match:
+                fund_info['securities_payable'] = securities_match.group(1)
+                fund_info['securities_payable_weight'] = securities_match.group(2) + '%'
+            
+            extracted_count = len([k for k in fund_info.keys() if k != 'nav'])
+            print(f"✅ 成功擷取 {extracted_count} 項基金資產資訊")
         except Exception as e:
             print(f"⚠️  基金資產資訊擷取失敗: {e}")
         
