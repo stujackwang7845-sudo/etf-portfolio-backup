@@ -2,8 +2,8 @@ name: Daily ETF Portfolio Fetch
 
 on:
   schedule:
-    # 每週一至五 台北時間 17:30 (UTC 09:30)
-    - cron: '30 9 * * 1-5'
+    # 每週一至五 台北時間 19:31 (UTC 11:31)
+    - cron: '31 11 * * 1-5'
   workflow_dispatch:  # 允許手動觸發
 
 permissions:
