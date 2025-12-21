@@ -121,8 +121,8 @@ def fetch_etf_data():
             # === 基金資產 ===
             # 淨資產 - 更寬鬆的匹配
             for pattern in [
-                r'淨資產\s*[:：]?\s*(NTD\s*[\d,]+)',
-                r'淨資產[^\d]+(NTD\s*[\d,]+)',
+                r'淨資產\s*[:：]?\s*(NTD\s*-?[\d,]+)',
+                r'淨資產[^\d]+(NTD\s*-?[\d,]+)',
             ]:
                 match = re.search(pattern, lines_text, re.IGNORECASE)
                 if match:
@@ -143,8 +143,8 @@ def fetch_etf_data():
             
             # 每單位淨值
             for pattern in [
-                r'每單位淨值\s*[:：]?\s*(NTD\s*[\d.]+)',
-                r'每單位淨值[^\d]+(NTD\s*[\d.]+)',
+                r'每單位淨值\s*[:：]?\s*(NTD\s*-?[\d.]+)',
+                r'每單位淨值[^\d]+(NTD\s*-?[\d.]+)',
             ]:
                 match = re.search(pattern, lines_text, re.IGNORECASE)
                 if match:
@@ -165,10 +165,10 @@ def fetch_etf_data():
             
             for item_name, (value_key, weight_key) in items_to_find.items():
                 # 嘗試找到「項目名稱 金額 權重」的模式
-                # 注意：百分比可能是 "0.56%" 或 "0.56 %"（有空格）
+                # 注意：百分比可能是 "0.56%" 或 "0.56 %"（有空格），且可能為負數
                 patterns = [
-                    rf'{item_name}\s+(NTD\s*[\d,]+)\s+([\d.]+)\s*%',  # 允許 % 前有空格
-                    rf'{item_name}[^\n]*?(NTD\s*[\d,]+)[^\d]+([\d.]+)\s*%',
+                    rf'{item_name}\s+(NTD\s*-?[\d,]+)\s+(-?[\d.]+)\s*%',  # 允許 % 前有空格，允許負數
+                    rf'{item_name}[^\n]*?(NTD\s*-?[\d,]+)[^\d]+(-?[\d.]+)\s*%',
                 ]
                 
                 for pattern in patterns:
