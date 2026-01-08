@@ -43,6 +43,12 @@ class GitHubSync:
             
         except Exception as e:
             print(f"❌ 取得檔案列表失敗: {e}")
+            try:
+                if 'response' in locals():
+                    print(f"Status Code: {response.status_code}")
+                    print(f"Response: {response.text[:200]}")
+            except:
+                pass
             return []
     
     def download_file(self, filename, save_dir=None):

@@ -68,9 +68,10 @@ def fetch_etf_data():
             data_date = f"{year}/{month.zfill(2)}/{day.zfill(2)}"
             print(f"✅ 找到資料日期: {data_date}")
         else:
-            # 備用：使用當前日期
-            data_date = datetime.now().strftime('%Y/%m/%d')
-            print(f"⚠️  無法找到資料日期，使用當前日期: {data_date}")
+            # 修正：無法找到日期也不要自動使用當前日期，避免產生錯誤資料
+            # data_date = datetime.now().strftime('%Y/%m/%d')
+            print(f"⚠️  無法從網頁解析資料日期！停止擷取以避免資料錯誤。")
+            raise ValueError("無法解析資料日期")
         
         # 擷取持股資料
         page_text = driver.find_element(By.TAG_NAME, 'body').text
