@@ -77,8 +77,8 @@ class GitHubSync:
         github_files = self.get_latest_files()
         
         if not github_files:
-            print("⚠️  GitHub repository 沒有找到資料檔案")
-            return
+            print("⚠️  GitHub repository 沒有找到資料檔案，將嘗試備援方案")
+
         
         print(f"找到 {len(github_files)} 個檔案")
         
