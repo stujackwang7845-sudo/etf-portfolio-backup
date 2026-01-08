@@ -2,7 +2,7 @@ name: Daily ETF Portfolio Fetch
 
 on:
   schedule:
-    # 每週一至五 台北時間 19:31 (UTC 11:31)
+    # 每週一至五 台北時間 17:30 (UTC 09:30)
     - cron: '30 09 * * 1-5'
   workflow_dispatch:  # 允許手動觸發
 
@@ -26,10 +26,6 @@ jobs:
       run: |
         pip install -r requirements.txt
     
-    - name: Install Chrome and ChromeDriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
     
     - name: Fetch ETF Portfolio Data
       run: |
