@@ -6,13 +6,17 @@ import os
 from pathlib import Path
 from datetime import datetime
 from data_manager import DataManager
+try:
+    from drive_sync import GoogleDriveSync
+except ImportError:
+    GoogleDriveSync = None
 import config
 
 
 class GitHubSync:
     """從 GitHub repository 同步 ETF 資料"""
     
-    def __init__(self, repo_owner="stujackwang7845-sudo", repo_name="etf-portfolio-backup"):
+    def __init__(self, repo_owner="stujackwang7845", repo_name="etf-portfolio-backup"):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         self.api_base = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
@@ -107,7 +111,14 @@ class GitHubSync:
                 try:
                     from import_historical_data import parse_excel_file
                     portfolio_data = parse_excel_file(str(filepath))
+                    
+                    # 1. 儲存持股資料
                     manager._save_to_database(portfolio_data['date'], portfolio_data['holdings'])
+                    
+                    # 2. 儲存資產配置 (基金統計資料)
+                    if 'asset_allocation' in portfolio_data:
+                        manager.save_fund_statistics(portfolio_data['date'], portfolio_data['asset_allocation'])
+                    
                     downloaded += 1
                     print(f"  ✅ 已匯入資料庫: {date}")
                 except Exception as e:
@@ -121,6 +132,14 @@ class GitHubSync:
         print(f"  資料庫總計: {len(manager.get_all_dates())} 個日期")
         print("="*60)
         
+        if downloaded == 0 and GoogleDriveSync:
+            print("\nGitHub 未發現新資料或下載失敗，嘗試使用 Google Drive 備援...")
+            try:
+                drive_sync = GoogleDriveSync()
+                return drive_sync.sync_to_database()
+            except Exception as e:
+                print(f"備援同步失敗: {e}")
+                
         return downloaded > 0
 
 
