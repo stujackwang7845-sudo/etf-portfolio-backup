@@ -16,7 +16,7 @@ import config
 class GitHubSync:
     """從 GitHub repository 同步 ETF 資料"""
     
-    def __init__(self, repo_owner="stujackwang7845", repo_name="etf-portfolio-backup"):
+    def __init__(self, repo_owner="stujackwang7845-sudo", repo_name="etf-portfolio-backup"):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         self.api_base = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
